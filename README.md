@@ -1,8 +1,8 @@
-# algame
+# algame-MRIMADHA
 
 **Backtesting made simple, scalable, and seamless.**
 
-`algame` is a powerful, modular, and user-friendly backtesting framework designed for algorithmic trading. With its built-in flexibility, it empowers both technical and non-technical users to easily test multiple strategies across assets and timeframes. The framework offers a TradingView-like GUI for visualization and supports custom data sources and engines for maximum adaptability.
+`algame-MRIMADHA` or `algame` (for short) is a powerful, modular, and user-friendly backtesting framework designed for algorithmic trading. With its built-in flexibility, it empowers both technical and non-technical users to easily test multiple strategies across assets and timeframes. The framework offers a TradingView-like GUI for visualization and supports custom data sources and engines for maximum adaptability.
 
 ---
 
