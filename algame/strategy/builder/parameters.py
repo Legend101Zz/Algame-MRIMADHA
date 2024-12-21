@@ -19,3 +19,10 @@ class ParameterComponent(BuilderComponent):
             return False
 
         return True
+
+    def generate_code(self) -> str:
+        """Generate parameter code."""
+        type_str = self.parameters['type']
+        default = self.parameters['default']
+
+        return f"{self.name}: {type_str} = {default}"
