@@ -63,6 +63,7 @@ from .components.optimizer import OptimizerPanel
 from .panels.data import DataPanel
 from .panels.strategy import StrategyPanel
 from .panels.results import ResultsPanel
+from .panels.converter_pinescript import ConverterPanel
 from .main import MainWindow
 
 logger = logging.getLogger(__name__)
@@ -189,5 +190,6 @@ __all__ = [
     'DataPanel',
     'StrategyPanel',
     'ResultsPanel',
+    'ConverterPanel',
     'app'
 ]

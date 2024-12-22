@@ -23,7 +23,8 @@ from pathlib import Path
 from .panels.data import DataPanel
 from .panels.strategy import StrategyPanel
 from .panels.results import ResultsPanel
-from .components.chart import Chart
+from .components.charts import Chart
+from .panels.converter_pinescript import ConverterPanel
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +103,8 @@ class MainWindow:
         file_menu.add_command(label="Save Project", command=self._save_project)
         file_menu.add_separator()
         file_menu.add_command(label="Export Results...", command=self._export_results)
+        file_menu.add_separator()
+        file_menu.add_command(label="Convert PineScript...", command=self._show_converter)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self._on_close)
 
@@ -210,6 +213,10 @@ class MainWindow:
 
         self.panels['results'] = ResultsPanel(self.notebook)
         self.notebook.add(self.panels['results'], text='Results')
+
+        # Add converter panel
+        self.panels['converter'] = ConverterPanel(self.notebook)
+        self.notebook.add(self.panels['converter'], text='PineScript')
 
     def _bind_events(self):
         """Bind event handlers."""
