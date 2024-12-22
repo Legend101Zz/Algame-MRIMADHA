@@ -141,7 +141,7 @@ class BacktestEngineInterface(ABC):
     """
 
     @abstractmethod
-    def __init__(self, config: EngineConfig = None):
+    def __init__(self, config: Optional[EngineConfig] = None):
         """
         Initialize backtest engine.
 
@@ -179,7 +179,7 @@ class BacktestEngineInterface(ABC):
     @abstractmethod
     def run_backtest(self,
                     strategy: Any,
-                    parameters: Dict[str, Any] = None) -> BacktestResult:
+                    parameters: Dict[str, Any] ) -> BacktestResult:
         """
         Run backtest with given strategy and parameters.
 
@@ -303,60 +303,60 @@ class BacktestEngineInterface(ABC):
         return self._trades
 
 # Example concrete implementation for testing
-class DemoEngine(BacktestEngineInterface):
-    """
-    Simple engine implementation for demonstration.
+# class DemoEngine(BacktestEngineInterface):
+#     """
+#     Simple engine implementation for demonstration.
 
-    This implements the bare minimum to show how the interface works.
-    Real engines would be more sophisticated.
-    """
+#     This implements the bare minimum to show how the interface works.
+#     Real engines would be more sophisticated.
+#     """
 
-    def set_data(self, data, validate=True):
-        if validate:
-            self.validate_data(data)
-        self._data = data
+#     def set_data(self, data, validate=True):
+#         if validate:
+#             self.validate_data(data)
+#         self._data = data
 
-    def run_backtest(self, strategy, parameters=None):
-        # Simplified backtest implementation
-        equity_curve = pd.Series(index=self._data.index)
-        equity_curve.iloc[0] = self.config.initial_capital
+#     def run_backtest(self, strategy, parameters=None):
+#         # Simplified backtest implementation
+#         equity_curve = pd.Series(index=self._data.index)
+#         equity_curve.iloc[0] = self.config.initial_capital
 
-        for i in range(1, len(self._data)):
-            equity_curve.iloc[i] = equity_curve.iloc[i-1]
+#         for i in range(1, len(self._data)):
+#             equity_curve.iloc[i] = equity_curve.iloc[i-1]
 
-        return BacktestResult(
-            equity_curve=equity_curve,
-            trades=[],
-            positions=pd.DataFrame(),
-            metrics={},
-            drawdowns=pd.Series(),
-            returns=pd.Series(),
-            exposure=0.0,
-            start_date=self._data.index[0],
-            end_date=self._data.index[-1],
-            config=self.config
-        )
+#         return BacktestResult(
+#             equity_curve=equity_curve,
+#             trades=[],
+#             positions=pd.DataFrame(),
+#             metrics={},
+#             drawdowns=pd.Series(),
+#             returns=pd.Series(),
+#             exposure=0.0,
+#             start_date=self._data.index[0],
+#             end_date=self._data.index[-1],
+#             config=self.config
+#         )
 
-    def optimize_strategy(self, strategy, parameter_space, metric='sharpe_ratio',
-                        method='grid', max_evals=None, constraints=None):
-        return OptimizationResult(
-            best_params={},
-            best_metrics={},
-            all_results=pd.DataFrame(),
-            param_importance={},
-            optimization_path=[]
-        )
+#     def optimize_strategy(self, strategy, parameter_space, metric='sharpe_ratio',
+#                         method='grid', max_evals=None, constraints=None):
+#         return OptimizationResult(
+#             best_params={},
+#             best_metrics={},
+#             all_results=pd.DataFrame(),
+#             param_importance={},
+#             optimization_path=[]
+#         )
 
-    def validate_data(self, data):
-        if isinstance(data, pd.DataFrame):
-            required_cols = ['Open', 'High', 'Low', 'Close']
-            if not all(col in data.columns for col in required_cols):
-                raise ValueError(f"Data must contain columns: {required_cols}")
-        return True
+#     def validate_data(self, data):
+#         if isinstance(data, pd.DataFrame):
+#             required_cols = ['Open', 'High', 'Low', 'Close']
+#             if not all(col in data.columns for col in required_cols):
+#                 raise ValueError(f"Data must contain columns: {required_cols}")
+#         return True
 
-    def calculate_metrics(self, equity_curve, trades, risk_free_rate=0.0):
-        return {
-            'total_return': 0.0,
-            'sharpe_ratio': 0.0,
-            'max_drawdown': 0.0
-        }
+#     def calculate_metrics(self, equity_curve, trades, risk_free_rate=0.0):
+#         return {
+#             'total_return': 0.0,
+#             'sharpe_ratio': 0.0,
+#             'max_drawdown': 0.0
+#         }

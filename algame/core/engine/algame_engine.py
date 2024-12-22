@@ -1,11 +1,9 @@
-# algame/core/engine/custom.py
-
 from typing import Dict, Any, List, Optional, Union
 import pandas as pd
 import numpy as np
 from datetime import datetime
 import multiprocessing as mp
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 import logging
 
 from .interface import (
@@ -241,7 +239,7 @@ class AssetProcessor:
 
 class CustomEngine(BacktestEngineInterface):
     """
-    Custom parallel backtesting engine.
+    Algame's Custom parallel backtesting engine.
 
     Features:
     - Multi-asset support
@@ -250,7 +248,7 @@ class CustomEngine(BacktestEngineInterface):
     - Detailed performance tracking
     """
 
-    def __init__(self, config: EngineConfig = None):
+    def __init__(self, config: Optional[EngineConfig] = None):
         super().__init__(config)
         self._workers = mp.cpu_count()
 
@@ -269,7 +267,7 @@ class CustomEngine(BacktestEngineInterface):
 
     def run_backtest(self,
                     strategy: Any,
-                    parameters: Dict[str, Any] = None) -> BacktestResult:
+                    parameters: Dict[str, Any] ) -> BacktestResult:
         """Run parallel backtest."""
         parameters = parameters or {}
 
@@ -378,7 +376,13 @@ class CustomEngine(BacktestEngineInterface):
         if not trades:
             return 0.0
 
-        total_time = (trades[-1].exit_time - trades[0].entry_time).total_seconds()
+        # Ensure trades with no exit_time are ignored for exposure calculation
+        closed_trades = [t for t in trades if t.exit_time is not None]
+
+        if not closed_trades:
+            return 0.0
+
+        total_time = (closed_trades[-1].exit_time - closed_trades[0].entry_time).total_seconds()
         exposure_time = sum(
             (t.exit_time - t.entry_time).total_seconds()
             for t in trades
@@ -460,7 +464,6 @@ class CustomEngine(BacktestEngineInterface):
             return {}
 
         # Convert results to DataFrame
-        import pandas as pd
         df = pd.DataFrame([
             {**r['parameters'], 'value': r['value']}
             for r in results

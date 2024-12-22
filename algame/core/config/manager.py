@@ -2,9 +2,9 @@ import json
 import yaml
 from pathlib import Path
 import logging
-from typing import Optional, Union, Dict
+from typing import Optional, Union, Dict ,List
 
-from .types import BacktestConfig
+from .types import BacktestConfig,StrategyConfig,EngineConfig
 
 logger = logging.getLogger(__name__)
 

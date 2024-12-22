@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union,Optional
 import pandas as pd
 from datetime import datetime
 from backtesting import Backtest
@@ -89,7 +89,7 @@ class BacktestingPyEngine(BacktestEngineInterface):
     4. Optimization support
     """
 
-    def __init__(self, config: EngineConfig = None):
+    def __init__(self, config: Optional[EngineConfig] = None):
         """Initialize engine with config."""
         super().__init__(config)
         self._backtest = None

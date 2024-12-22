@@ -3,9 +3,11 @@ import pandas as pd
 from pathlib import Path
 import json
 import logging
+import datetime
 
-from .interface import BacktestResult, EngineConfig
+from .interface import BacktestResult, EngineConfig,OptimizationResult
 from .registry import EngineRegistry
+from ..strategy import StrategyBase
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +57,13 @@ class EngineManager:
         self._engine = None
         self.set_engine(engine)
 
+
+        # Track strategy and results
+        self._last_strategy: Optional[StrategyBase] = None
+        self._last_results: Optional[BacktestResult] = None
+        self._strategy_history: Dict[str, Dict[str, Any]] = {}
+
+
     def set_engine(self, engine: Optional[str] = None) -> None:
         """
         Set active engine.
@@ -66,33 +75,37 @@ class EngineManager:
         logger.info(f"Set active engine to: {type(self._engine).__name__}")
 
     def run_backtest(self,
-                    strategy: Any,
+                    strategy: Union[Type[StrategyBase], StrategyBase],
                     data: Union[pd.DataFrame, Dict[str, pd.DataFrame]],
                     parameters: Optional[Dict[str, Any]] = None,
                     engine: Optional[str] = None) -> BacktestResult:
-        """
-        Run backtest with current engine.
-
-        Args:
-            strategy: Strategy to test
-            data: Market data
-            parameters: Strategy parameters
-            engine: Temporarily use different engine
-
-        Returns:
-            BacktestResult: Backtest results
-        """
+        """Run backtest with current engine."""
         # Use temporary engine if specified
         if engine:
             orig_engine = self._engine
             self.set_engine(engine)
 
         try:
+            # Create strategy instance if needed
+            if isinstance(strategy, type):
+                strategy_instance = strategy(parameters)
+            else:
+                strategy_instance = strategy
+                if parameters:
+                    strategy_instance.set_parameters(parameters)
+
+            # Store as last strategy
+            self._last_strategy = strategy_instance
+            self._record_strategy_usage(strategy_instance)
+
             # Prepare backtest
             self._engine.set_data(data)
 
             # Run backtest
-            results = self._engine.run_backtest(strategy, parameters)
+            results = self._engine.run_backtest(strategy_instance, parameters)
+
+            # Store results
+            self._last_results = results
             logger.info(f"Completed backtest with {len(results.trades)} trades")
 
             return results
@@ -103,28 +116,27 @@ class EngineManager:
                 self._engine = orig_engine
 
     def optimize_strategy(self,
-                        strategy: Any,
+                        strategy: Union[Type[StrategyBase], StrategyBase],
                         data: Union[pd.DataFrame, Dict[str, pd.DataFrame]],
                         parameter_space: Dict[str, Any],
-                        **kwargs) -> Any:
-        """
-        Optimize strategy parameters.
+                        **kwargs) -> OptimizationResult:
+        """Optimize strategy parameters."""
+        # Create strategy instance if needed
+        if isinstance(strategy, type):
+            strategy_instance = strategy()
+        else:
+            strategy_instance = strategy
 
-        Args:
-            strategy: Strategy to optimize
-            data: Market data
-            parameter_space: Parameter ranges
-            **kwargs: Additional optimization parameters
+        # Store as last strategy
+        self._last_strategy = strategy_instance
+        self._record_strategy_usage(strategy_instance)
 
-        Returns:
-            OptimizationResult: Optimization results
-        """
         # Prepare optimization
         self._engine.set_data(data)
 
         # Run optimization
         results = self._engine.optimize_strategy(
-            strategy,
+            strategy_instance,
             parameter_space,
             **kwargs
         )
@@ -133,7 +145,7 @@ class EngineManager:
         return results
 
 
-    def save_config(self, path: str) -> None:
+    def save_config(self, path: Union[str,Path]) -> None:
         """
         Save current configuration.
 
@@ -172,7 +184,7 @@ class EngineManager:
             logger.error(f"Failed to save config: {str(e)}")
             raise IOError(f"Unable to save config: {str(e)}")
 
-    def load_config(self, path: str) -> None:
+    def load_config(self, path: Union[str,Path]) -> None:
         """
         Load configuration from file.
 
@@ -243,7 +255,7 @@ class EngineManager:
         }
         return features
 
-    def export_config(self, path: str, include_results: bool = False) -> None:
+    def export_config(self, path: Union[str,Path], include_results: bool = False) -> None:
         """
         Export complete configuration including strategy details.
 
@@ -319,3 +331,39 @@ class EngineManager:
             'largest_win': max((t.pnl for t in trades), default=0),
             'largest_loss': min((t.pnl for t in trades), default=0),
         }
+
+    def _record_strategy_usage(self, strategy: StrategyBase) -> None:
+        """Record strategy usage history."""
+        strategy_name = strategy.__class__.__name__
+        if strategy_name not in self._strategy_history:
+            self._strategy_history[strategy_name] = {
+                'first_used': datetime.now(),
+                'usage_count': 0,
+                'parameters': [],
+                'results': []
+            }
+
+        history = self._strategy_history[strategy_name]
+        history['usage_count'] += 1
+        history['last_used'] = datetime.now()
+        history['parameters'].append(strategy.get_parameters())
+
+    def get_strategy_history(self, strategy_name: Optional[str] = None) -> Dict:
+        """Get strategy usage history."""
+        if strategy_name:
+            return self._strategy_history.get(strategy_name, {})
+        return self._strategy_history
+
+    def get_last_strategy(self) -> Optional[StrategyBase]:
+        """Get last used strategy."""
+        return self._last_strategy
+
+    def get_last_results(self) -> Optional[BacktestResult]:
+        """Get last backtest results."""
+        return self._last_results
+
+    def clear_history(self) -> None:
+        """Clear strategy history."""
+        self._strategy_history.clear()
+        self._last_strategy = None
+        self._last_results = None
