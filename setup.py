@@ -31,8 +31,6 @@ setup(
     author="Mrigesh Thakur, Dharuva Thakur, Maanas Sood",
     author_email="mrigeshthakur11@gmail.com",
     description="algame is a powerful, modular backtesting framework for algorithmic trading. Easily test multiple strategies across assets and timeframes, visualize results with a TradingView-like GUI, and integrate custom data or engines. Flexible, user-friendly, and future-ready.",
-    long_description=open('README.md').read(),
-    long_description_content_type="text/markdown",
     url="https://github.com/Legend101Zz/Algame-MRIMADHA",
     classifiers=[
         "Development Status :: 4 - Beta",

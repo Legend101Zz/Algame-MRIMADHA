@@ -38,3 +38,5 @@ coverage.xml
 
 # Misc
 .DS_Store
+
+.pypirc
