@@ -327,3 +327,355 @@ class PineConverter:
         except SyntaxError as e:
             logger.error(f"Generated invalid Python code: {str(e)}")
             raise
+
+
+"""
+High-level interface for PineScript conversion.
+
+Key differences between PineConverter and PineScriptConverter:
+
+PineConverter:
+- Core conversion engine
+- Handles syntax translations
+- Manages state and mappings
+- Lower level API
+
+PineScriptConverter:
+- High-level interface
+- File handling
+- Error handling & reporting
+- Code validation & formatting
+- Template management
+- Integration with IDE/GUI
+"""
+
+@dataclass
+class ConversionResult:
+    """Result of strategy conversion."""
+    python_code: str
+    meta_info: Dict[str, Any]
+    warnings: List[str]
+    success: bool
+    timestamp: datetime = datetime.now()
+
+class PineScriptConverter:
+    """
+    High-level interface for converting PineScript strategies.
+
+    Features:
+    - File handling
+    - Error reporting
+    - Code validation
+    - Template management
+    - Conversion history
+
+    Example:
+        converter = PineScriptConverter()
+        result = converter.convert_file('strategy.pine')
+        if result.success:
+            print(result.python_code)
+    """
+
+    def __init__(self, template_dir: Optional[str] = None):
+        """
+        Initialize converter.
+
+        Args:
+            template_dir: Optional custom template directory
+        """
+        # Core converter
+        self.converter = PineConverter()
+
+        # Template management
+        self.template_dir = Path(template_dir) if template_dir else \
+                          Path(__file__).parent / 'templates'
+
+        # Load templates
+        self.templates = self._load_templates()
+
+        # Conversion history
+        self._history: List[ConversionResult] = []
+
+        # Settings
+        self.settings = {
+            'auto_format': True,
+            'strict_validation': False,
+            'save_history': True,
+            'max_history': 100
+        }
+
+    def convert(self, pine_code: str) -> ConversionResult:
+        """
+        Convert PineScript code to Python.
+
+        Args:
+            pine_code: Raw PineScript code
+
+        Returns:
+            ConversionResult containing:
+            - Generated Python code
+            - Metadata about conversion
+            - Any warnings
+            - Success status
+        """
+        warnings = []
+        try:
+            # Pre-process code
+            processed_code = self._preprocess_code(pine_code)
+
+            # Basic validation
+            self._validate_pine_code(processed_code)
+
+            # Convert code
+            python_code = self.converter.convert(processed_code)
+
+            # Post-process code
+            python_code = self._postprocess_code(python_code)
+
+            # Format if enabled
+            if self.settings['auto_format']:
+                python_code = self._format_code(python_code)
+
+            # Build metadata
+            meta = {
+                'pine_version': str(self.converter.parser.version),
+                'strategy_name': self.converter.parsed['strategy'].get('title', 'PineStrategy'),
+                'num_indicators': len(self.converter.indicators),
+                'num_variables': len(self.converter.strategy_vars)
+            }
+
+            # Create result
+            result = ConversionResult(
+                python_code=python_code,
+                meta_info=meta,
+                warnings=warnings,
+                success=True
+            )
+
+            # Add to history
+            if self.settings['save_history']:
+                self._add_to_history(result)
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Conversion failed: {str(e)}")
+            return ConversionResult(
+                python_code='',
+                meta_info={},
+                warnings=warnings + [str(e)],
+                success=False
+            )
+
+    def convert_file(self,
+                    input_file: Union[str, Path],
+                    output_file: Optional[Union[str, Path]] = None,
+                    use_template: Optional[str] = None) -> ConversionResult:
+        """
+        Convert PineScript file to Python.
+
+        Args:
+            input_file: PineScript file path
+            output_file: Optional output file path
+            use_template: Optional template name to use
+
+        Returns:
+            ConversionResult with conversion details
+
+        Raises:
+            FileNotFoundError: If input file not found
+            ValueError: If template not found
+        """
+        try:
+            # Read input file
+            with open(input_file, 'r') as f:
+                pine_code = f.read()
+
+            # Apply template if specified
+            if use_template:
+                template = self.get_template(use_template)
+                pine_code = self._apply_template(pine_code, template)
+
+            # Convert code
+            result = self.convert(pine_code)
+
+            # Save if output specified
+            if output_file and result.success:
+                self.save_strategy(result.python_code, output_file)
+
+            return result
+
+        except FileNotFoundError:
+            logger.error(f"Input file not found: {input_file}")
+            raise
+        except Exception as e:
+            logger.error(f"File conversion failed: {str(e)}")
+            raise
+
+    def validate_conversion(self, pine_code: str, python_code: str) -> List[str]:
+        """
+        Validate conversion result.
+
+        Performs:
+        1. Syntax validation
+        2. Strategy class validation
+        3. Logic comparison
+
+        Returns:
+            List of validation errors (empty if valid)
+        """
+        errors = []
+
+        try:
+            # Check Python syntax
+            compile(python_code, '<string>', 'exec')
+
+            # Import and instantiate strategy
+            namespace = {}
+            exec(python_code, namespace)
+
+            strategy_class = None
+            for obj in namespace.values():
+                if isinstance(obj, type) and issubclass(obj, StrategyBase):
+                    strategy_class = obj
+                    break
+
+            if not strategy_class:
+                errors.append("No strategy class found in generated code")
+
+            # Check required methods
+            if strategy_class:
+                if not hasattr(strategy_class, 'initialize'):
+                    errors.append("Missing initialize method")
+                if not hasattr(strategy_class, 'next'):
+                    errors.append("Missing next method")
+
+            # Validate logic (if strict)
+            if self.settings['strict_validation']:
+                errors.extend(self._validate_logic(pine_code, python_code))
+
+        except Exception as e:
+            errors.append(f"Validation error: {str(e)}")
+
+        return errors
+
+    def _preprocess_code(self, code: str) -> str:
+        """Pre-process PineScript code."""
+        # Remove comments
+        code = re.sub(r'//.*$', '', code, flags=re.MULTILINE)
+        code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
+
+        # Normalize whitespace
+        code = code.strip()
+
+        # Add version if missing
+        if not re.search(r'//@version=\d+', code):
+            code = "//@version=5\n" + code
+
+        return code
+
+    def _postprocess_code(self, code: str) -> str:
+        """Post-process generated Python code."""
+        # Add module docstring
+        docstring = '"""\nGenerated Python strategy.\n\nConverted from PineScript.\n"""\n\n'
+        code = docstring + code
+
+        # Add imports
+        imports = set()
+        if 'StrategyBase' in code:
+            imports.add('from algame.strategy import StrategyBase')
+        if any(ind in code for ind in ['SMA', 'RSI', 'MACD']):
+            imports.add('from algame.indicators import *')
+
+        if imports:
+            code = '\n'.join(sorted(imports)) + '\n\n' + code
+
+        return code
+
+    def _format_code(self, code: str) -> str:
+        """Format Python code."""
+        try:
+            import black
+            return black.format_str(code, mode=black.FileMode())
+        except ImportError:
+            logger.warning("black not installed, skipping formatting")
+            return code
+
+    def _load_templates(self) -> Dict[str, str]:
+        """Load conversion templates."""
+        templates = {}
+
+        if not self.template_dir.exists():
+            return templates
+
+        for file in self.template_dir.glob('*.template'):
+            try:
+                templates[file.stem] = file.read_text()
+            except Exception as e:
+                logger.warning(f"Failed to load template {file}: {e}")
+
+        return templates
+
+    def get_template(self, name: str) -> str:
+        """Get template by name."""
+        if name not in self.templates:
+            raise ValueError(f"Template not found: {name}")
+        return self.templates[name]
+
+    def _apply_template(self, code: str, template: str) -> str:
+        """Apply template to code."""
+        # Extract key components from code
+        components = self._extract_components(code)
+
+        # Fill template placeholders
+        filled = template
+        for key, value in components.items():
+            filled = filled.replace(f"{{{key}}}", value)
+
+        return filled
+
+    def _extract_components(self, code: str) -> Dict[str, str]:
+        """Extract key components from code."""
+        components = {}
+
+        # Extract strategy name/settings
+        if match := re.search(r'strategy\((.*?)\)', code):
+            components['strategy_settings'] = match.group(1)
+
+        # Extract indicators
+        indicators = []
+        for line in code.split('\n'):
+            if 'ta.' in line:
+                indicators.append(line.strip())
+        components['indicators'] = '\n'.join(indicators)
+
+        return components
+
+    def _add_to_history(self, result: ConversionResult):
+        """Add conversion to history."""
+        self._history.append(result)
+
+        # Trim if needed
+        if len(self._history) > self.settings['max_history']:
+            self._history = self._history[-self.settings['max_history']:]
+
+    def get_history(self) -> List[ConversionResult]:
+        """Get conversion history."""
+        return self._history.copy()
+
+    def clear_history(self):
+        """Clear conversion history."""
+        self._history.clear()
+
+    @property
+    def num_conversions(self) -> int:
+        """Get number of conversions performed."""
+        return len(self._history)
+
+    @property
+    def success_rate(self) -> float:
+        """Get conversion success rate."""
+        if not self._history:
+            return 0.0
+        successes = sum(1 for r in self._history if r.success)
+        return successes / len(self._history)
