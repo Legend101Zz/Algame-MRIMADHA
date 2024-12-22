@@ -1,5 +1,3 @@
-# algame/strategy/builder/gui.py
-
 import tkinter as tk
 from tkinter import ttk, messagebox
 from typing import Dict, Any, Optional, List

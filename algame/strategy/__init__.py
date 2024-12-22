@@ -57,10 +57,8 @@ from .template import (
 
 # Import builder components
 from .builder import (
-    StrategyBuilder,
-    RuleBuilder,
-    IndicatorBuilder,
-    StrategyEditor
+StrategyBuilder,
+BuilderComponent
 )
 
 # Import indicator components
@@ -72,7 +70,9 @@ from .indicators import (
     MACD,
     Bollinger,
     ATR,
-    register_indicator
+    register_indicator,
+    list_indicators,
+    get_indicator
 )
 
 # Import validation
@@ -124,9 +124,7 @@ __all__ = [
 
     # Builder
     'StrategyBuilder',
-    'RuleBuilder',
-    'IndicatorBuilder',
-    'StrategyEditor',
+    'BuilderComponent',
 
     # Indicators
     'Indicator',
@@ -137,6 +135,8 @@ __all__ = [
     'Bollinger',
     'ATR',
     'register_indicator',
+    'list_indicators',
+    'get_indicator',
 
     # Validation
     'StrategyValidator',

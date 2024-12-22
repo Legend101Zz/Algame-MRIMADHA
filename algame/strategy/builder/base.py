@@ -5,20 +5,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class BuilderComponent(ABC):
-    """
-    Base class for builder components.
-
-    Components are the building blocks of strategies:
-    - Indicators
-    - Entry/Exit Rules
-    - Risk Management
-    - Position Sizing
-    """
+    """Base class for strategy builder components."""
 
     def __init__(self, name: str):
-        """Initialize component."""
         self.name = name
         self.parameters: Dict[str, Any] = {}
+        self.metadata: Dict[str, Any] = {}
 
     @abstractmethod
     def validate(self) -> bool:
@@ -31,19 +23,22 @@ class BuilderComponent(ABC):
         pass
 
     def to_dict(self) -> Dict:
-        """Convert component to dictionary."""
+        """Convert to dictionary."""
         return {
             'name': self.name,
             'type': self.__class__.__name__,
-            'parameters': self.parameters
+            'parameters': self.parameters,
+            'metadata': self.metadata
         }
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'BuilderComponent':
-        """Create component from dictionary."""
+        """Create from dictionary."""
         component = cls(data['name'])
-        component.parameters = data['parameters']
+        component.parameters = data.get('parameters', {})
+        component.metadata = data.get('metadata', {})
         return component
+
 
 class ComponentRegistry:
     """Registry for builder components."""

@@ -1,25 +1,23 @@
 from .base import BuilderComponent
 
 class IndicatorComponent(BuilderComponent):
-    """Component for technical indicators."""
+    """Technical indicator component."""
 
     def validate(self) -> bool:
-        """Validate indicator configuration."""
         required = ['type', 'inputs', 'parameters']
         if not all(k in self.parameters for k in required):
             return False
 
-        # Check indicator type exists
-        from ..indicators import get_indicator
+        # Validate indicator exists
         try:
+            from ..indicators import get_indicator
             get_indicator(self.parameters['type'])
-        except ValueError:
+        except:
             return False
 
         return True
 
     def generate_code(self) -> str:
-        """Generate indicator code."""
         ind_type = self.parameters['type']
         inputs = self.parameters['inputs']
         params = self.parameters['parameters']
@@ -27,5 +25,4 @@ class IndicatorComponent(BuilderComponent):
         # Format parameters
         param_str = ", ".join(f"{k}={v}" for k,v in params.items())
 
-        # Generate code
         return f"self.{self.name} = self.add_indicator('{ind_type}', {inputs}, {param_str})"

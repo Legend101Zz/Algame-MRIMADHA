@@ -1,32 +1,29 @@
 from .base import BuilderComponent
 
-
 class RuleComponent(BuilderComponent):
-    """Component for trading rules."""
+    """Trading rule component."""
 
     def validate(self) -> bool:
-        """Validate rule configuration."""
-        required = ['type', 'condition']
-        if not all(k in self.parameters for k in required):
+        if 'condition' not in self.parameters:
             return False
 
-        # Parse condition
-        from .parser import RuleParser
+        # Validate rule syntax
         try:
-            RuleParser().parse(self.parameters['condition'])
+            condition = self.parameters['condition']
+            compile(condition, '<string>', 'eval')
         except:
             return False
 
         return True
 
     def generate_code(self) -> str:
-        """Generate rule code."""
-        # Parse condition
-        from .parser import RuleParser
-        parser = RuleParser()
-        condition = parser.parse(self.parameters['condition'])
+        condition = self.parameters['condition']
 
-        return condition
+        if self.parameters.get('type') == 'entry':
+            return f"if {condition}:\n    self.buy()"
+        else:
+            return f"if {condition}:\n    self.sell()"
+
 
 class RuleParser:
     """Parser for trading rules."""

@@ -1,322 +1,67 @@
-from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Union, Any
+from datetime import datetime
 import pandas as pd
 import numpy as np
-from datetime import datetime
 import logging
-
-from ..core.data import MarketData
-from ..core.config import StrategyConfig
+from abc import ABC, abstractmethod
 
 logger = logging.getLogger(__name__)
 
-class StrategyBase(ABC):
-    """
-    Base class for all trading strategies.
+@dataclass
+class Order:
+    """Trading order details."""
+    type: str  # 'buy' or 'sell'
+    size: float
+    price: Optional[float] = None
+    stop_loss: Optional[float] = None
+    take_profit: Optional[float] = None
+    time: Optional[datetime] = None
+    status: str = 'pending'  # pending, filled, cancelled
+    id: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
-    This abstract class defines the interface and core functionality that
-    all strategies must implement. It provides:
-
-    1. Strategy Lifecycle:
-        - Initialization
-        - Data updates
-        - Signal generation
-        - Position management
-
-    2. Data Management:
-        - Historical data access
-        - Indicator calculation
-        - Data validation
-
-    3. Trading Interface:
-        - Order management
-        - Position tracking
-        - Risk management
-
-    4. Analysis:
-        - Performance metrics
-        - Trade statistics
-        - Risk analytics
-
-    The strategy framework follows several design principles:
-
-    1. Separation of Concerns:
-        - Trading logic separate from execution
-        - Data management separate from analysis
-        - Configuration separate from implementation
-
-    2. Flexibility:
-        - Support multiple assets
-        - Support multiple timeframes
-        - Support multiple order types
-
-    3. Safety:
-        - Type checking
-        - Data validation
-        - Position validation
-
-    Usage:
-        class MyStrategy(StrategyBase):
-            def initialize(self):
-                # Setup indicators
-                self.sma = self.add_indicator('SMA', self.data.Close, 20)
-
-            def next(self):
-                # Generate signals
-                if self.data.Close[-1] > self.sma[-1]:
-                    self.buy()
-    """
-
-    def __init__(self, config: Optional[Union[Dict, StrategyConfig]] = None):
-        """
-        Initialize strategy.
-
-        Args:
-            config: Strategy configuration or parameters
-        """
-        # Convert dict config to StrategyConfig
-        self.config = (StrategyConfig(**config) if isinstance(config, dict)
-                      else config or StrategyConfig(name="Default"))
-
-        # Initialize components
-        self.data: Optional[MarketData] = None
-        self.position = Position()
-        self.indicators: Dict[str, Any] = {}
-        self.trades: List[Trade] = []
-
-        # State tracking
-        self._initialized = False
-        self._current_time: Optional[datetime] = None
-
-        logger.debug(f"Initialized strategy: {self.config.name}")
-
-    @abstractmethod
-    def initialize(self) -> None:
-        """
-        Initialize strategy.
-
-        This method is called once before backtesting starts.
-        Use it to:
-        - Set up indicators
-        - Initialize strategy variables
-        - Validate data and parameters
-        """
-        pass
-
-    @abstractmethod
-    def next(self) -> None:
-        """
-        Process next market update.
-
-        This method is called for each new market update.
-        Use it to:
-        - Generate trading signals
-        - Manage positions
-        - Update indicators
-        """
-        pass
-
-    def set_data(self, data: MarketData) -> None:
-        """
-        Set market data.
-
-        Args:
-            data: Market data container
-        """
-        self.data = data
-        if not self._initialized:
-            self.initialize()
-            self._initialized = True
-
-    def add_indicator(self,
-                     name: str,
-                     func: callable,
-                     *args,
-                     **kwargs) -> np.ndarray:
-        """
-        Add technical indicator.
-
-        Args:
-            name: Indicator name
-            func: Indicator calculation function
-            *args: Function arguments
-            **kwargs: Function keyword arguments
-
-        Returns:
-            np.ndarray: Indicator values
-        """
-        # Calculate indicator
-        values = func(*args, **kwargs)
-
-        # Store indicator
-        self.indicators[name] = values
-
-        return values
-
-    def buy(self,
-           size: Optional[float] = None,
-           limit: Optional[float] = None,
-           stop: Optional[float] = None,
-           sl: Optional[float] = None,
-           tp: Optional[float] = None) -> Order:
-        """
-        Place buy order.
-
-        Args:
-            size: Position size (or None for full size)
-            limit: Limit price
-            stop: Stop price
-            sl: Stop loss price
-            tp: Take profit price
-
-        Returns:
-            Order: Created order
-        """
-        # Validate inputs
-        if size is not None and size <= 0:
-            raise ValueError("Size must be positive")
-
-        # Use default size
-        if size is None:
-            size = 1.0  # Full position size
-
-        # Create order
-        order = Order(
-            type='buy',
-            size=size,
-            limit=limit,
-            stop=stop,
-            sl=sl,
-            tp=tp
-        )
-
-        # Add to position
-        self.position.add_order(order)
-
-        logger.debug(f"Created buy order: {order}")
-        return order
-
-    def sell(self,
-            size: Optional[float] = None,
-            limit: Optional[float] = None,
-            stop: Optional[float] = None,
-            sl: Optional[float] = None,
-            tp: Optional[float] = None) -> Order:
-        """
-        Place sell order.
-
-        Args:
-            size: Position size (or None for full size)
-            limit: Limit price
-            stop: Stop price
-            sl: Stop loss price
-            tp: Take profit price
-
-        Returns:
-            Order: Created order
-        """
-        # Validate inputs
-        if size is not None and size <= 0:
-            raise ValueError("Size must be positive")
-
-        # Use default size
-        if size is None:
-            size = 1.0  # Full position size
-
-        # Create order
-        order = Order(
-            type='sell',
-            size=size,
-            limit=limit,
-            stop=stop,
-            sl=sl,
-            tp=tp
-        )
-
-        # Add to position
-        self.position.add_order(order)
-
-        logger.debug(f"Created sell order: {order}")
-        return order
-
-    def close(self,
-             size: Optional[float] = None,
-             limit: Optional[float] = None,
-             stop: Optional[float] = None) -> Order:
-        """
-        Close position.
-
-        Args:
-            size: Position size to close (None for full)
-            limit: Limit price
-            stop: Stop price
-
-        Returns:
-            Order: Created order
-        """
-        # Check position
-        if not self.position.is_open:
-            return None
-
-        # Use remaining size
-        if size is None:
-            size = abs(self.position.size)
-
-        # Create opposite order
-        if self.position.is_long:
-            return self.sell(size, limit, stop)
-        else:
-            return self.buy(size, limit, stop)
-
-    def cancel_orders(self) -> None:
-        """Cancel all pending orders."""
-        self.position.cancel_orders()
+@dataclass
+class Trade:
+    """Completed trade details."""
+    entry_time: datetime
+    entry_price: float
+    size: float
+    type: str  # 'long' or 'short'
+    exit_time: Optional[datetime] = None
+    exit_price: Optional[float] = None
+    pnl: float = 0.0
+    fees: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     @property
-    def is_initialized(self) -> bool:
-        """Check if strategy is initialized."""
-        return self._initialized
+    def duration(self) -> Optional[float]:
+        """Get trade duration in days."""
+        if self.exit_time and self.entry_time:
+            return (self.exit_time - self.entry_time).total_seconds() / 86400
+        return None
 
-    def get_parameters(self) -> Dict[str, Any]:
-        """Get strategy parameters."""
-        return self.config.parameters
-
-    def set_parameters(self, parameters: Dict[str, Any]) -> None:
-        """Set strategy parameters."""
-        self.config.parameters.update(parameters)
-
-    def validate_parameters(self) -> bool:
-        """
-        Validate strategy parameters.
-
-        Returns:
-            bool: True if parameters are valid
-
-        Raises:
-            ValueError: If parameters are invalid
-        """
-        return True
+    @property
+    def return_pct(self) -> Optional[float]:
+        """Get trade return percentage."""
+        if self.exit_price and self.entry_price:
+            return ((self.exit_price - self.entry_price) / self.entry_price) * 100
+        return None
 
 class Position:
-    """
-    Position management.
-
-    Handles:
-    - Position tracking
-    - Order management
-    - Risk calculation
-    """
+    """Position management."""
 
     def __init__(self):
         """Initialize position."""
-        self.size = 0.0
-        self.orders: List[Order] = []
-        self.trades: List[Trade] = []
-
-    @property
-    def is_open(self) -> bool:
-        """Check if position is open."""
-        return self.size != 0
+        self.size: float = 0.0  # Current position size
+        self.entry_price: Optional[float] = None  # Average entry price
+        self.last_update: Optional[datetime] = None
+        self.stop_loss: Optional[float] = None
+        self.take_profit: Optional[float] = None
+        self.orders: List[Order] = []  # Pending orders
+        self.trades: List[Trade] = []  # Completed trades
+        self.pnl: float = 0.0  # Realized P&L
+        self.fees: float = 0.0  # Total fees
 
     @property
     def is_long(self) -> bool:
@@ -328,175 +73,228 @@ class Position:
         """Check if position is short."""
         return self.size < 0
 
+    @property
+    def is_open(self) -> bool:
+        """Check if position is open."""
+        return self.size != 0
+
     def add_order(self, order: Order) -> None:
-        """Add order to position."""
+        """Add new order."""
         self.orders.append(order)
 
-    def cancel_orders(self) -> None:
-        """Cancel all pending orders."""
-        self.orders = []
+    def update(self, current_price: float, current_time: datetime) -> None:
+        """Update position state."""
+        # Update last price
+        self._current_price = current_price
+        self.last_update = current_time
 
-    def update(self, price: float) -> None:
-        """
-        Update position with new price.
+        # Check stops
+        if self.should_stop_out(current_price):
+            self.close(current_price, current_time)
 
-        Args:
-            price: Current price
-        """
-        # Process orders
-        for order in self.orders[:]:
-            if order.is_triggered(price):
-                self._process_order(order, price)
-                self.orders.remove(order)
-
-    def _process_order(self, order: Order, price: float) -> None:
-        """
-        Process executed order.
-
-        Args:
-            order: Executed order
-            price: Execution price
-        """
-        # Update size
-        if order.type == 'buy':
-            self.size += order.size
-        else:
-            self.size -= order.size
-
-        # Create trade
-        trade = Trade(
-            type=order.type,
-            size=order.size,
-            entry_price=price,
-            entry_time=datetime.now()
-        )
-        self.trades.append(trade)
-
-class Order:
-    """
-    Trading order.
-
-    Represents:
-    - Order type (market, limit, stop)
-    - Order parameters (size, price)
-    - Order status (pending, filled, cancelled)
-    """
-
-    def __init__(self,
-                type: str,
-                size: float,
-                limit: Optional[float] = None,
-                stop: Optional[float] = None,
-                sl: Optional[float] = None,
-                tp: Optional[float] = None):
-        """
-        Initialize order.
-
-        Args:
-            type: Order type ('buy' or 'sell')
-            size: Order size
-            limit: Limit price
-            stop: Stop price
-            sl: Stop loss price
-            tp: Take profit price
-        """
-        self.type = type
-        self.size = size
-        self.limit = limit
-        self.stop = stop
-        self.sl = sl
-        self.tp = tp
-
-        self.status = 'pending'
-        self.filled_price = None
-        self.filled_time = None
-
-    def is_triggered(self, price: float) -> bool:
-        """
-        Check if order is triggered.
-
-        Args:
-            price: Current price
-
-        Returns:
-            bool: True if order should execute
-        """
-        if self.status != 'pending':
+    def should_stop_out(self, price: float) -> bool:
+        """Check if position should be stopped out."""
+        if not self.is_open:
             return False
 
-        if self.type == 'buy':
-            # Buy stop
-            if self.stop and price >= self.stop:
+        if self.stop_loss:
+            if self.is_long and price <= self.stop_loss:
                 return True
-            # Buy limit
-            if self.limit and price <= self.limit:
+            if self.is_short and price >= self.stop_loss:
                 return True
 
-        else:  # sell
-            # Sell stop
-            if self.stop and price <= self.stop:
+        if self.take_profit:
+            if self.is_long and price >= self.take_profit:
                 return True
-            # Sell limit
-            if self.limit and price >= self.limit:
+            if self.is_short and price <= self.take_profit:
                 return True
 
         return False
 
-class Trade:
-    """
-    Completed trade.
+    def close(self, price: float, time: datetime) -> None:
+        """Close position."""
+        if not self.is_open:
+            return
 
-    Contains:
-    - Trade details (type, size, prices)
-    - Trade times (entry, exit)
-    - Trade metrics (pnl, return)
-    """
+        # Create trade record
+        trade = Trade(
+            entry_time=self.entry_time,
+            entry_price=self.entry_price,
+            exit_time=time,
+            exit_price=price,
+            size=abs(self.size),
+            type='long' if self.is_long else 'short',
+            pnl=self._calculate_pnl(price),
+            fees=self.fees
+        )
+        self.trades.append(trade)
 
-    def __init__(self,
-                type: str,
-                size: float,
-                entry_price: float,
-                entry_time: datetime):
-        """
-        Initialize trade.
+        # Update p&l
+        self.pnl += trade.pnl
 
-        Args:
-            type: Trade type ('buy' or 'sell')
-            size: Trade size
-            entry_price: Entry price
-            entry_time: Entry time
-        """
-        self.type = type
-        self.size = size
-        self.entry_price = entry_price
-        self.entry_time = entry_time
+        # Reset position
+        self.size = 0
+        self.entry_price = None
+        self.stop_loss = None
+        self.take_profit = None
+        self.fees = 0
 
-        self.exit_price = None
-        self.exit_time = None
+    def _calculate_pnl(self, exit_price: float) -> float:
+        """Calculate trade P&L."""
+        if not self.entry_price:
+            return 0.0
+        price_diff = exit_price - self.entry_price
+        return price_diff * self.size
 
-    @property
-    def is_closed(self) -> bool:
-        """Check if trade is closed."""
-        return self.exit_price is not None
+class StrategyState:
+    """Strategy state container."""
 
-    @property
-    def pnl(self) -> Optional[float]:
-        """Get trade profit/loss."""
-        if not self.is_closed:
-            return None
-
-        if self.type == 'buy':
-            return (self.exit_price - self.entry_price) * self.size
-        else:
-            return (self.entry_price - self.exit_price) * self.size
+    def __init__(self):
+        self.position = Position()
+        self.equity = []  # Equity curve
+        self.trades = []  # Completed trades
+        self.indicators = {}  # Technical indicators
+        self._data = None  # Market data reference
+        self._last_update = None  # Last update time
 
     @property
-    def return_pct(self) -> Optional[float]:
-        """Get trade return percentage."""
-        if not self.is_closed:
-            return None
+    def data(self):
+        """Get market data."""
+        return self._data
 
-        return self.pnl / (self.entry_price * self.size)
+    @data.setter
+    def data(self, value):
+        """Set market data."""
+        self._data = value
+        self._on_data_update()
 
-# Export classes
-__all__ = ['StrategyBase', 'Position', 'Order', 'Trade']
+    def _on_data_update(self):
+        """Handle data updates."""
+        if not self._data:
+            return
+
+        # Update indicators
+        for ind in self.indicators.values():
+            ind.update(self._data)
+
+        # Update last time
+        if len(self._data) > 0:
+            self._last_update = self._data.index[-1]
+
+class StrategyBase(ABC):
+    """Base class for trading strategies."""
+
+    def __init__(self, parameters: Optional[Dict[str, Any]] = None):
+        """Initialize strategy."""
+        # Initialize state
+        self.state = StrategyState()
+
+        # Store parameters
+        self.parameters = parameters or {}
+
+        # Initialize metadata
+        self.name = self.__class__.__name__
+        self.version = "1.0.0"
+        self.author = ""
+        self._initialized = False
+
+    @abstractmethod
+    def initialize(self) -> None:
+        """Initialize strategy."""
+        pass
+
+    @abstractmethod
+    def next(self) -> None:
+        """Process next market update."""
+        pass
+
+    def set_data(self, data: pd.DataFrame) -> None:
+        """Set market data."""
+        self.state.data = data
+        if not self._initialized:
+            self.initialize()
+            self._initialized = True
+
+    def buy(self, size: float = 1.0, **kwargs) -> Order:
+        """Place buy order."""
+        order = Order(
+            type='buy',
+            size=size,
+            stop_loss=kwargs.get('sl'),
+            take_profit=kwargs.get('tp'),
+            time=self.state._last_update
+        )
+        self.state.position.add_order(order)
+        return order
+
+    def sell(self, size: float = 1.0, **kwargs) -> Order:
+        """Place sell order."""
+        order = Order(
+            type='sell',
+            size=size,
+            stop_loss=kwargs.get('sl'),
+            take_profit=kwargs.get('tp'),
+            time=self.state._last_update
+        )
+        self.state.position.add_order(order)
+        return order
+
+    def close(self) -> None:
+        """Close current position."""
+        if self.state.position.is_open:
+            self.state.position.close(
+                self.state.data['Close'][-1],
+                self.state._last_update
+            )
+
+    # Indicator management
+    def add_indicator(self, name: str, indicator: Any, *args, **kwargs) -> Any:
+        """Add technical indicator."""
+        # Create indicator instance if needed
+        if isinstance(indicator, type):
+            indicator = indicator(*args, **kwargs)
+
+        # Calculate indicator
+        values = indicator.calculate(self.state.data)
+
+        # Store instance and values
+        self.state.indicators[name] = {
+            'instance': indicator,
+            'values': values
+        }
+
+        return values
+
+    def get_parameters(self) -> Dict[str, Any]:
+        """Get strategy parameters."""
+        return self.parameters
+
+    def set_parameters(self, parameters: Dict[str, Any]) -> None:
+        """Set strategy parameters."""
+        self.parameters = parameters
+
+    def validate_parameters(self) -> bool:
+        """Validate strategy parameters."""
+        # Override to add validation
+        return True
+
+    @classmethod
+    def get_parameter_info(cls) -> Dict[str, Dict[str, Any]]:
+        """Get parameter metadata."""
+        return {}
+
+# Example usage
+# class SimpleStrategy(StrategyBase):
+#     def initialize(self):
+#         # Add 20-period SMA
+#         self.sma = self.add_indicator('SMA', SMA, period=20)
+
+#     def next(self):
+#         if not self.state.position.is_open:
+#             # Buy if price crosses above SMA
+#             if self.state.data['Close'][-1] > self.sma[-1]:
+#                 self.buy()
+#         else:
+#             # Sell if price crosses below SMA
+#             if self.state.data['Close'][-1] < self.sma[-1]:
+#                 self.sell()

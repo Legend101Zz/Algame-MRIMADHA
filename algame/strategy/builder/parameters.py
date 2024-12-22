@@ -1,28 +1,20 @@
 from .base import BuilderComponent
 
-
 class ParameterComponent(BuilderComponent):
-    """Component for strategy parameters."""
+    """Strategy parameter component."""
 
     def validate(self) -> bool:
-        """Validate parameter configuration."""
-        required = ['type', 'default', 'range']
+        required = ['type', 'default']
         if not all(k in self.parameters for k in required):
             return False
 
-        # Check type
+        # Validate type
         if self.parameters['type'] not in ['int', 'float', 'bool', 'str']:
-            return False
-
-        # Check range
-        if not isinstance(self.parameters['range'], (list, tuple)):
             return False
 
         return True
 
     def generate_code(self) -> str:
-        """Generate parameter code."""
-        type_str = self.parameters['type']
+        param_type = self.parameters['type']
         default = self.parameters['default']
-
-        return f"{self.name}: {type_str} = {default}"
+        return f"{self.name}: {param_type} = {default}"
