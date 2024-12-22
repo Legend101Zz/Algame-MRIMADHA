@@ -168,28 +168,6 @@ class Calendar(tk.Toplevel):
         self.month_var.trace('w', lambda *args: self._update_calendar())
         self.year_var.trace('w', lambda *args: self._update_calendar())
 
-    def _update_calendar(self):
-        """Update calendar display."""
-        # Set month/year display
-        self.month_var.set(calendar.month_name[self._display_date.month])
-        self.year_var.set(str(self._display_date.year))
-
-        # Get calendar data
-        cal = calendar.monthcalendar(
-            self._display_date.year,
-            self._display_date.month
-        )
-
-        # Update day buttons
-        for i, btn in enumerate(self._day_buttons):
-            week = i // 7
-            day = i % 7
-
-            try:
-                day_num = cal[week][day]
-                if day_num == 0:
-                    btn.configure(text='', state='disabled')
-
     def _prev_month(self):
         """Go to previous month."""
         year = self._display_date.year
@@ -283,6 +261,27 @@ class Calendar(tk.Toplevel):
         self.result = None
         self.destroy()
 
+    def _update_calendar(self):
+        """Update calendar display."""
+        # Set month/year display
+        self.month_var.set(calendar.month_name[self._display_date.month])
+        self.year_var.set(str(self._display_date.year))
+
+        # Get calendar data
+        cal = calendar.monthcalendar(
+            self._display_date.year,
+            self._display_date.month
+        )
+
+        # Update day buttons
+        for i, btn in enumerate(self._day_buttons):
+            week = i // 7
+            day = i % 7
+
+            try:
+                day_num = cal[week][day]
+                if day_num == 0:
+                    btn.configure(text='', state='disabled')
                 else:
                     btn.configure(
                         text=str(day_num),
