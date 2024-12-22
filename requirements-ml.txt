@@ -1,0 +1,29 @@
+# Machine Learning extensions
+-r requirements.txt
+
+# Deep Learning
+torch>=1.9.0
+tensorflow>=2.6.0
+
+# Gradient Boosting
+lightgbm>=3.2.0
+xgboost>=1.4.0
+catboost>=0.26.0
+
+# Feature Engineering
+feature-engine>=1.0.2
+category_encoders>=2.2.2
+
+# Model Analysis
+shap>=0.39.0
+lime>=0.2.0
+eli5>=0.11.0
+
+# Hyperparameter Optimization
+optuna>=2.8.0
+hyperopt>=0.2.5
+bayesian-optimization>=1.2.0
+
+# Data Processing
+imbalanced-learn>=0.8.0
+scikit-optimize>=0.8.1

@@ -1,0 +1,89 @@
+# Core Dependencies
+numpy>=1.19.0,<2.0.0
+pandas>=1.2.0,<2.0.0
+matplotlib>=3.3.0,<4.0.0
+scipy>=1.7.0,<2.0.0
+scikit-learn>=0.24.0,<2.0.0
+
+# Trading & Data
+yfinance>=0.1.63
+backtesting>=0.3.3
+pandas-ta>=0.3.0b0
+ta-lib>=0.4.0
+alpaca-trade-api>=2.0.0
+ccxt>=1.60.0
+
+# GUI Dependencies
+tk>=0.1.0
+Pillow>=8.0.0
+ttkthemes>=3.2.0
+
+# Data Processing
+pyarrow>=6.0.0
+openpyxl>=3.0.0
+xlrd>=2.0.0
+PyYAML>=5.4.0
+
+# Technical Analysis
+TA-Lib>=0.4.19
+stockstats>=0.3.2
+
+# Optimization
+optuna>=2.8.0
+hyperopt>=0.2.5
+
+# Performance
+numba>=0.53.0
+bottleneck>=1.3.2
+
+# Development Tools
+black>=21.5b2
+flake8>=3.9.0
+mypy>=0.812
+pytest>=6.0.0
+pytest-cov>=2.12.0
+tox>=3.24.0
+
+# Documentation
+Sphinx>=4.0.0
+sphinx-rtd-theme>=0.5.2
+nbsphinx>=0.8.0
+jupyter>=1.0.0
+
+# Type Checking
+typing-extensions>=3.10.0
+types-PyYAML>=5.4.3
+types-requests>=2.25.9
+
+# Code Quality
+pylint>=2.8.0
+isort>=5.8.0
+autopep8>=1.5.7
+
+# API Integrations
+requests>=2.25.0
+websockets>=9.1
+aiohttp>=3.7.4
+
+# Optional Dependencies
+plotly>=5.0.0  # Interactive plotting
+dash>=2.0.0    # Web dashboards
+streamlit>=1.0.0  # Quick web apps
+python-binance>=1.0.0  # Binance API
+ib_insync>=0.9.0  # Interactive Brokers API
+
+# Machine Learning Extensions
+torch>=1.9.0
+tensorflow>=2.6.0
+lightgbm>=3.2.0
+xgboost>=1.4.0
+catboost>=0.26.0
+
+# Testing
+pytest-mock>=3.6.0
+pytest-asyncio>=0.15.0
+pytest-timeout>=2.0.0
+freezegun>=1.1.0
+
+# Deployment
+docker>=5.0.0
