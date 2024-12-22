@@ -1,5 +1,3 @@
-# algame/gui/components/builder.py
-
 """
 Strategy builder component.
 
