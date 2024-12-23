@@ -50,6 +50,115 @@ pip install git+https://github.com/mrigesh/algame-mrimadha.git
 
 ---
 
+# Development Setup
+
+## Quick Start for Developers
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Legend101Zz/Algame-MRIMADHA.git
+cd Algame-MRIMADHA
+```
+
+2. Create and activate a virtual environment:
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Linux/Mac
+python -m venv venv
+source venv/bin/activate
+```
+
+3. Run the development setup script:
+```bash
+python scripts/dev_setup.py
+```
+
+## Running the Package
+
+After setup, you can:
+
+1. Start the GUI:
+```bash
+python -m algame
+```
+
+2. Run the quick start example:
+```bash
+python examples/quickstart.py
+```
+
+3. Run tests:
+```bash
+pytest tests/
+```
+
+## Project Structure
+
+```
+algame-MRIMADHA/
+├── src/
+│   └── algame/          # Main package directory
+├── tests/               # Test files
+├── examples/            # Example scripts
+├── scripts/             # Development scripts
+├── docs/                # Documentation
+└── requirements/        # Requirement files
+```
+
+## Contributing
+
+1. Create a new branch for your feature/fix:
+```bash
+git checkout -b feature-name
+```
+
+2. Make your changes and run tests:
+```bash
+pytest tests/
+```
+
+3. Submit a pull request to the main repository.
+
+## Common Development Tasks
+
+- Run specific test module:
+```bash
+pytest tests/core/test_engine.py
+```
+
+- Run with coverage report:
+```bash
+pytest --cov=algame tests/
+```
+
+- Start GUI in debug mode:
+```bash
+python -m algame --debug
+```
+
+- Build documentation:
+```bash
+cd docs
+make html
+```
+
+## Troubleshooting Development Setup
+
+If you encounter issues:
+
+1. Make sure you're in the virtual environment
+2. Try removing and reinstalling dependencies:
+```bash
+pip uninstall algame-mrimadha
+pip install -e .
+```
+3. Check the logs in `~/.algame/logs/`
+
+For more help, please open an issue on GitHub.
+
 ## 🏃‍♂️ Quick Start
 
 ### Code Your First Strategy
