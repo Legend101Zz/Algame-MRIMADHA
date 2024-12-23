@@ -13,3 +13,13 @@ python:
     - requirements: docs/requirements.txt
     - method: pip
       path: .
+
+formats:
+  - pdf
+  - epub
+
+# Additional settings for more control
+search:
+  ranking:
+    api/*: -1
+    userguide/*: 2
