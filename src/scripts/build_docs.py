@@ -1,23 +1,37 @@
-import os
-import shutil
-import subprocess
 from pathlib import Path
+import subprocess
+import os
 
 def build_docs():
     """Build documentation using Sphinx."""
-    docs_dir = Path(__file__).parent.parent / 'docs'
+    # Get project root directory (where setup.py is)
+    root_dir = Path(__file__).parent.parent.parent
 
-    # Install doc requirements
-    subprocess.check_call(['pip', 'install', 'sphinx', 'sphinx-rtd-theme'])
+    # Set up paths
+    docs_dir = root_dir / 'docs'
+    source_dir = root_dir / 'src' / 'algame'
 
-    # Create API documentation
-    subprocess.check_call(['sphinx-apidoc', '-o', str(docs_dir / 'api'), '../src/algame'])
+    # Create required directories
+    docs_dir.mkdir(exist_ok=True)
+    api_dir = docs_dir / 'api'
+    api_dir.mkdir(exist_ok=True)
+
+    # Generate API documentation
+    subprocess.check_call([
+        'sphinx-apidoc',
+        '-o', str(api_dir),  # Output directory
+        str(source_dir),     # Source code directory
+        '--separate',        # Create separate pages for modules
+        '--force'           # Overwrite existing files
+    ])
 
     # Build HTML documentation
-    subprocess.check_call(['sphinx-build', '-b', 'html', str(docs_dir), str(docs_dir / '_build' / 'html')])
+    subprocess.check_call([
+        'sphinx-build',
+        '-b', 'html',       # Builder to use
+        str(docs_dir),      # Source directory
+        str(docs_dir / '_build' / 'html')  # Output directory
+    ])
 
-    print("\nDocumentation built successfully!")
-    print(f"Open {docs_dir}/_build/html/index.html to view")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     build_docs()
