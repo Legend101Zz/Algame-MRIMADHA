@@ -9,7 +9,7 @@ from .interface import (
 )
 from .manager import EngineManager
 from .registry import EngineRegistry
-from .custom import CustomEngine
+from .algame_engine import CustomEngine
 from .backtesting_py import BacktestingPyEngine
 
 __all__ = [

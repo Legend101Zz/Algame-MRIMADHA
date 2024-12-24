@@ -20,9 +20,8 @@ from typing import Dict, List, Optional, Any
 import logging
 from functools import partial
 
-from ...strategy import StrategyBase
-from ...strategy.indicators import list_indicators, get_indicator
-from ...strategy.validation import validate_strategy
+from algame.strategy import StrategyBase , list_indicators, get_indicator
+from algame.strategy.validator import validate_strategy,StrategyValidator
 
 logger = logging.getLogger(__name__)
 

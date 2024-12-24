@@ -1,112 +1,103 @@
 """
-AlGame-MRIMADHA - Algorithmic Trading Framework
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Algame: Algorithmic Trading Framework
+===================================
 
-AlGame is a flexible backtesting framework supporting multiple assets,
-timeframes and engines with an easy-to-use GUI interface.
-
-Basic usage:
-    >>> from algame import Backtester
-    >>> from algame.strategies import SMACrossover
-    >>>
-    >>> # Create backtester
-    >>> bt = Backtester()
-    >>>
-    >>> # Run backtest
-    >>> results = bt.run(
-    ...     strategy=SMACrossover,
-    ...     symbols=['AAPL', 'GOOGL'],
-    ...     start='2020-01-01'
-    ... )
-    >>>
-    >>> # Show results
-    >>> results.plot()
+Core Modules:
+- strategy: Strategy development and management
+- core: Core backtesting engine and utilities
+- gui: Graphical user interface components
+- tools: Utility tools and helpers
+- analysis: Analysis and metrics
 """
 
 __version__ = '0.1.0'
 
-from .core.engine import EngineManager
-from .core.engine.interface import (
-    BacktestResult,
-    OptimizationResult,
-    EngineConfig
+# Core components
+from .core import (
+    EngineManager,
+    BacktestConfig,
+    EngineConfig,
+    MarketData
 )
 
-# Create default engine manager
-_engine_manager = EngineManager()
+# Strategy components
+from .strategy import (
+    StrategyBase,
+    Position,
+    Order,
+    Trade,
+    TrendStrategy,
+    MeanReversionStrategy,
+    BreakoutStrategy
+)
 
-class Backtester:
-    """
-    Main interface for running backtests.
+# GUI components
+from .gui import (
+    GUI,
+    MainWindow,
+    Chart,
+    OptimizerPanel,
+    DataPanel,
+    StrategyPanel,
+    ResultsPanel,
+    ConverterPanel,
+    app
+)
 
-    This class provides a simplified interface to the engine system.
-    Most users should use this rather than working with engines directly.
-    """
+# Analysis components
+from .analysis import (
+    PerformanceMetrics,
+    RiskAnalysis,
+    OptimizationAnalysis
+)
 
-    def __init__(self, engine: str = None, **config):
-        """
-        Initialize backtester.
+# Tools and utilities
+from .tools import (
+    PineScriptConverter,
+    convert_strategy
+)
 
-        Args:
-            engine: Engine to use ('custom' or 'backtesting.py')
-            **config: Engine configuration parameters
-        """
-        self._manager = EngineManager()
-        if engine:
-            self._manager.set_engine(engine)
+# Public API
+__all__ = [
+    # Core
+    'EngineManager',
+    'BacktestConfig',
+    'EngineConfig',
+    'MarketData',
 
-        # Update configuration
-        if config:
-            self._manager.config = EngineConfig(**config)
+    # Strategy
+    'StrategyBase',
+    'Position',
+    'Order',
+    'Trade',
+    'TrendStrategy',
+    'MeanReversionStrategy',
+    'BreakoutStrategy',
 
-    def run(self,
-            strategy: Any,
-            data: Union[str, pd.DataFrame, Dict[str, pd.DataFrame]],
-            parameters: Dict[str, Any] = None,
-            **kwargs) -> BacktestResult:
-        """
-        Run backtest.
+    # GUI
+    'GUI',
+    'MainWindow',
+    'Chart',
+    'OptimizerPanel',
+    'DataPanel',
+    'StrategyPanel',
+    'ResultsPanel',
+    'ConverterPanel',
+    'app',
 
-        Args:
-            strategy: Strategy to test
-            data: Market data (symbol, DataFrame, or dict of DataFrames)
-            parameters: Strategy parameters
-            **kwargs: Additional parameters
+    # Analysis
+    'PerformanceMetrics',
+    'RiskAnalysis',
+    'OptimizationAnalysis',
 
-        Returns:
-            BacktestResult: Backtest results
-        """
-        # Load data if string provided
-        if isinstance(data, str):
-            from .data import load_data
-            data = load_data(data, **kwargs)
+    # Tools
+    'PineScriptConverter',
+    'convert_strategy',
 
-        return self._manager.run_backtest(strategy, data, parameters)
+    # Version
+    '__version__'
+]
 
-    def optimize(self,
-                strategy: Any,
-                data: Union[str, pd.DataFrame],
-                parameter_space: Dict[str, List[Any]],
-                **kwargs) -> OptimizationResult:
-        """
-        Optimize strategy parameters.
-
-        Args:
-            strategy: Strategy to optimize
-            data: Market data
-            parameter_space: Parameter ranges to test
-            **kwargs: Additional optimization parameters
-
-        Returns:
-            OptimizationResult: Optimization results
-        """
-        if isinstance(data, str):
-            from .data import load_data
-            data = load_data(data, **kwargs)
-
-        return self._manager.optimize_strategy(
-            strategy,
-            data,
-            parameter_space,
-            **kwargs
-        )
+# Make the default engine instance available
+from .core import core
+default_engine = core

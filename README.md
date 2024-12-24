@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Algame Logo](resources/logo.png)
+![Algame Logo](assets/algame.webp)
 
 [![PyPI version](https://badge.fury.io/py/algame-mrimadha.svg)](https://badge.fury.io/py/algame-mrimadha)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -11,7 +11,7 @@
 
 **📈 A Modern Algorithmic Trading & Backtesting Framework**
 
-*By traders, for traders - Making algo trading accessible without compromising power*
+_By traders, for traders - Making algo trading accessible without compromising power_
 
 [Installation](#installation) • [Quick Start](#quick-start) • [Documentation](https://algame-mrimadha.readthedocs.io/) • [Examples](examples/) • [Contributing](CONTRIBUTING.md)
 
@@ -24,12 +24,14 @@
 After years of frustration with existing backtesting frameworks that were either too rigid or too complex, we created Algame with one goal: make algorithmic trading accessible while keeping it powerful.
 
 Through our journey, we learned:
+
 - Traders need flexibility in strategy development
 - Real-world trading requires robust testing
 - Visual tools accelerate development
 - Code shouldn't be a barrier to algo trading
 
 ### Our Solution? A Framework That:
+
 - 🎯 Adapts to your style (code, visual, or both)
 - 🔧 Handles complexity behind simple interfaces
 - 📊 Provides professional-grade analysis
@@ -44,8 +46,9 @@ pip install algame-mrimadha
 ```
 
 Development Version:
+
 ```bash
-pip install git+https://github.com/mrigesh/algame-mrimadha.git
+pip install git+https://github.com/Legend101Zz/Algame-MRIMADHA.git
 ```
 
 ---
@@ -55,12 +58,14 @@ pip install git+https://github.com/mrigesh/algame-mrimadha.git
 ## Quick Start for Developers
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/Legend101Zz/Algame-MRIMADHA.git
 cd Algame-MRIMADHA
 ```
 
 2. Create and activate a virtual environment:
+
 ```bash
 # Windows
 python -m venv venv
@@ -72,6 +77,7 @@ source venv/bin/activate
 ```
 
 3. Run the development setup script:
+
 ```bash
 python scripts/dev_setup.py
 ```
@@ -81,16 +87,19 @@ python scripts/dev_setup.py
 After setup, you can:
 
 1. Start the GUI:
+
 ```bash
 python -m algame
 ```
 
 2. Run the quick start example:
+
 ```bash
 python examples/quickstart.py
 ```
 
 3. Run tests:
+
 ```bash
 pytest tests/
 ```
@@ -111,11 +120,13 @@ algame-MRIMADHA/
 ## Contributing
 
 1. Create a new branch for your feature/fix:
+
 ```bash
 git checkout -b feature-name
 ```
 
 2. Make your changes and run tests:
+
 ```bash
 pytest tests/
 ```
@@ -125,21 +136,25 @@ pytest tests/
 ## Common Development Tasks
 
 - Run specific test module:
+
 ```bash
 pytest tests/core/test_engine.py
 ```
 
 - Run with coverage report:
+
 ```bash
 pytest --cov=algame tests/
 ```
 
 - Start GUI in debug mode:
+
 ```bash
 python -m algame --debug
 ```
 
 - Build documentation:
+
 ```bash
 cd docs
 make html
@@ -151,10 +166,12 @@ If you encounter issues:
 
 1. Make sure you're in the virtual environment
 2. Try removing and reinstalling dependencies:
+
 ```bash
 pip uninstall algame-mrimadha
 pip install -e .
 ```
+
 3. Check the logs in `~/.algame/logs/`
 
 For more help, please open an issue on GitHub.
@@ -162,6 +179,7 @@ For more help, please open an issue on GitHub.
 ## 🏃‍♂️ Quick Start
 
 ### Code Your First Strategy
+
 ```python
 from algame.strategy import StrategyBase
 from algame.core import EngineManager
@@ -196,6 +214,7 @@ print(f"Sharpe Ratio: {results.metrics['sharpe_ratio']:.2f}")
 ```
 
 ### Or Use the GUI
+
 ```python
 from algame.gui import start_app
 
@@ -211,6 +230,7 @@ start_app()
 ### 🎯 Multi-Everything Support
 
 #### Multi-Asset Trading
+
 ```python
 # Trade multiple assets simultaneously
 data = {
@@ -227,6 +247,7 @@ class MultiAssetStrategy(StrategyBase):
 ```
 
 #### Multi-Timeframe Analysis
+
 ```python
 # Mix timeframes in your strategy
 class MultiTimeframeStrategy(StrategyBase):
@@ -240,6 +261,7 @@ class MultiTimeframeStrategy(StrategyBase):
 ### 🔌 Pluggable Architecture
 
 #### Custom Data Sources
+
 ```python
 from algame.data import DataSourceBase
 
@@ -254,6 +276,7 @@ data = load_data('AAPL', source='my_source')
 ```
 
 #### Custom Indicators
+
 ```python
 from algame.indicators import IndicatorBase
 
@@ -271,9 +294,11 @@ class MyStrategy(StrategyBase):
 ### 🎨 Strategy Building
 
 #### Visual Builder
+
 ![Strategy Builder](resources/strategy_builder.png)
 
 #### Template-Based Development
+
 ```python
 from algame.strategy import MomentumTemplate
 
@@ -364,6 +389,7 @@ manager = EngineManager(config=None)
 **Methods:**
 
 - `run_backtest(strategy, data, parameters=None)`: Run a backtest
+
   ```python
   results = manager.run_backtest(
       strategy=MyStrategy,
@@ -389,6 +415,7 @@ manager = EngineManager(config=None)
 Contains backtest results and performance metrics.
 
 **Attributes:**
+
 - `equity_curve`: Equity curve as pandas Series
 - `trades`: List of Trade objects
 - `metrics`: Dictionary of performance metrics
@@ -410,6 +437,7 @@ manager = DataManager()
 **Methods:**
 
 - `get_data(symbol, source='yahoo', **kwargs)`: Load market data
+
   ```python
   data = manager.get_data(
       symbol='AAPL',
@@ -476,6 +504,7 @@ metrics = PerformanceMetrics(equity_curve, trades)
 ```
 
 **Metrics:**
+
 - Total Return
 - Annual Return
 - Sharpe Ratio
@@ -493,6 +522,7 @@ risk = RiskAnalysis(returns, positions)
 ```
 
 **Methods:**
+
 - `calculate_position_size(risk_per_trade, stop_loss)`
 - `stress_test(scenarios)`
 - `analyze_drawdowns()`
@@ -510,6 +540,7 @@ window = MainWindow(root)
 ```
 
 **Components:**
+
 - DataPanel: Data management
 - StrategyPanel: Strategy development
 - ResultsPanel: Results analysis
@@ -528,6 +559,7 @@ converter = PineScriptConverter()
 ```
 
 **Methods:**
+
 - `convert(pine_code)`: Convert PineScript to Python
 - `convert_file(input_file, output_file)`: Convert PineScript file
 
@@ -538,6 +570,7 @@ converter = PineScriptConverter()
 ## Introduction
 
 This guide covers:
+
 1. Basic strategy structure
 2. Technical indicators
 3. Entry/exit signals
@@ -628,6 +661,7 @@ self.custom = self.add_indicator(CustomIndicator(20), self.data.Close)
 ### Signal Types
 
 1. Price Action:
+
 ```python
 def next(self):
     # Breakout
@@ -640,6 +674,7 @@ def next(self):
 ```
 
 2. Indicator Crossovers:
+
 ```python
 def next(self):
     # MA Crossover
@@ -655,6 +690,7 @@ def next(self):
 ```
 
 3. Multiple Conditions:
+
 ```python
 def next(self):
     # Trend following with volume confirmation
@@ -880,7 +916,7 @@ class MonteCarloStrategy(StrategyBase):
 
 ### Feature Engineering
 
-```python
+````python
 from algame.ml import FeatureEngineering
 
 class MLStrategy(StrategyBase):
@@ -943,7 +979,7 @@ class PredictiveStrategy(StrategyBase):
             self.buy()
         elif prob[0] > 0.7:  # 70% confidence for short
             self.sell()
-```
+````
 
 ## Custom Data Integration
 
@@ -1044,6 +1080,7 @@ class StrategyDashboard(AnalyticsDashboard):
 ```
 
 These advanced features make Algame a powerful platform for both research and trading. Use them to:
+
 - Implement sophisticated strategies
 - Integrate machine learning
 - Create custom analysis tools
@@ -1140,6 +1177,7 @@ class RiskParityStrategy(StrategyBase):
 ### 1. Code Structure
 
 ✅ Do:
+
 ```python
 class WellStructuredStrategy(StrategyBase):
     def __init__(self, parameters=None):
@@ -1187,6 +1225,7 @@ class WellStructuredStrategy(StrategyBase):
 ```
 
 ❌ Don't:
+
 ```python
 class PoorlyStructuredStrategy(StrategyBase):
     def next(self):
@@ -1203,6 +1242,7 @@ class PoorlyStructuredStrategy(StrategyBase):
 ### 2. Risk Management
 
 ✅ Do:
+
 ```python
 def calculate_position_size(self):
     """Calculate position size based on risk."""
@@ -1224,6 +1264,7 @@ def calculate_stop_distance(self):
 ```
 
 ❌ Don't:
+
 ```python
 def next(self):
     # Fixed position size ignores risk
@@ -1236,6 +1277,7 @@ def next(self):
 ### 3. Data Handling
 
 ✅ Do:
+
 ```python
 def validate_data(self):
     """Validate input data."""
@@ -1260,6 +1302,7 @@ def handle_missing_data(self):
 ```
 
 ❌ Don't:
+
 ```python
 def next(self):
     # Dangerous direct indexing without checks
@@ -1271,6 +1314,7 @@ def next(self):
 ### 4. Performance Optimization
 
 ✅ Do:
+
 ```python
 class OptimizedStrategy(StrategyBase):
     def initialize(self):
@@ -1295,6 +1339,7 @@ class OptimizedStrategy(StrategyBase):
 ```
 
 ❌ Don't:
+
 ```python
 def next(self):
     # Expensive calculations in loop
@@ -1307,6 +1352,7 @@ def next(self):
 ### 5. Testing & Validation
 
 ✅ Do:
+
 ```python
 class RobustStrategy(StrategyBase):
     def validate_parameters(self):
@@ -1335,6 +1381,7 @@ class RobustStrategy(StrategyBase):
 ```
 
 ❌ Don't:
+
 ```python
 def next(self):
     # No parameter validation
@@ -1349,6 +1396,7 @@ def next(self):
 ## Common Pitfalls to Avoid
 
 1. Lookahead Bias
+
 ```python
 # ❌ Wrong: Using future data
 def next(self):
@@ -1360,6 +1408,7 @@ def next(self):
 ```
 
 2. Survivorship Bias
+
 ```python
 # ❌ Wrong: Using current S&P 500 list historically
 universe = sp500_current_symbols
@@ -1368,12 +1417,12 @@ universe = sp500_current_symbols
 universe = get_historical_sp500_composition(date)
 ```
 
-
 ---
 
 ## 🔧 Under Development
 
 Features coming soon:
+
 - [ ] Live Trading Support
 - [ ] Enhanced PineScript Converter
 - [ ] Machine Learning Integration
@@ -1385,9 +1434,9 @@ Features coming soon:
 
 ## 👥 Authors
 
-- **Mrigesh Thakur** - *Lead Developer* - [GitHub](https://github.com/Legend101Zz)
-- **Dharuva Thakur** - *Core Developer* - [GitHub](https://github.com/Dharuva)
-- **Maanas Sood** - *Core Developer* - [GitHub](https://github.com/maanasood)
+- **Mrigesh Thakur** - _Lead Developer_ - [GitHub](https://github.com/Legend101Zz)
+- **Dharuva Thakur** - _Core Developer_ - [GitHub](https://github.com/Dharuva)
+- **Maanas Sood** - _Core Developer_ - [GitHub](https://github.com/maanasood)
 
 ---
 

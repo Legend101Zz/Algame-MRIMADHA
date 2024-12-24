@@ -58,7 +58,7 @@ from pathlib import Path
 import json
 
 # Import components
-from .components.chart import Chart
+from .components.charts import Chart
 from .components.optimizer import OptimizerPanel
 from .panels.data import DataPanel
 from .panels.strategy import StrategyPanel
